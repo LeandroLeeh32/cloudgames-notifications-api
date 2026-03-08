@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CloudGames.Contracts\CloudGames.Contracts.csproj" />
     <ProjectReference Include="..\CloudGames.Notifications.Application\CloudGames.Notifications.Application.csproj" />
+    <ProjectReference Include="..\CloudGames.Notifications.Contracts\CloudGames.Notifications.Contracts.csproj" />
     <ProjectReference Include="..\CloudGames.Notifications.Domain\CloudGames.Notifications.Domain.csproj" />
   </ItemGroup>
 

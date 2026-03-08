@@ -1,5 +1,6 @@
-﻿using CloudGames.Contracts.IntegrationEvents.Purchases;
+﻿
 using CloudGames.Notifications.Application.UseCases;
+using CloudGames.Notifications.Contracts.IntegrationEvents.Purchases;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 

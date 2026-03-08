@@ -1,4 +1,5 @@
-﻿namespace CloudGames.Contracts.IntegrationEvents.Purchases
+﻿
+namespace CloudGames.Notifications.Contracts.IntegrationEvents.Purchases
 {
     public class PurchaseCreatedIntegrationEvent
     {

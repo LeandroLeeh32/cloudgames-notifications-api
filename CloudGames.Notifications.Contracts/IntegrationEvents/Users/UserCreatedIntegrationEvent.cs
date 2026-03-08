@@ -1,4 +1,4 @@
-﻿namespace CloudGames.Contracts.IntegrationEvents.Users
+﻿namespace CloudGames.Notifications.Contracts.IntegrationEvents.Users
 {
     public class UserCreatedIntegrationEvent : BaseEvent
     {
