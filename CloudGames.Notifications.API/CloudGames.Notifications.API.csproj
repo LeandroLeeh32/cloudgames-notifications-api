@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="C:\Users\Lenovo\.nuget\packages\nlog.config\4.7.15\contentFiles\any\any\NLog.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudGames.Contracts\CloudGames.Contracts.csproj" />
+    <ProjectReference Include="..\CloudGames.Notifications.Application\CloudGames.Notifications.Application.csproj" />
+    <ProjectReference Include="..\CloudGames.Notifications.Infrastructure\CloudGames.Notifications.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" Version="9.0.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0" />
+    <PackageReference Include="NLog" Version="6.1.1" />
+    <PackageReference Include="NLog.Config" Version="4.7.15" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.2" />
+  </ItemGroup>
+
+</Project>
