@@ -19,7 +19,7 @@ namespace CloudGames.Notifications.Infrastructure.Services
 
         public async Task SendEmailAsync(string email, string subject, string message)
         {
-            _logger.LogInformation("Sending email to {Email} - {Subject}", email, subject);
+            // _logger.LogInformation("Sending email to {Email} - {Subject}", email, subject);
 
             Console.WriteLine($"To: {email}");
             Console.WriteLine($"subject: {subject}");

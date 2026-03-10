@@ -24,7 +24,10 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    // Remove todos os loggers padrão
     builder.Logging.ClearProviders();
+
+    // Usa somente NLog
     builder.Host.UseNLog();
 
     #endregion
@@ -107,7 +110,6 @@ try
     app.MapHealthChecks("/health");
 
     #endregion
-
 
     app.Run();
 }
