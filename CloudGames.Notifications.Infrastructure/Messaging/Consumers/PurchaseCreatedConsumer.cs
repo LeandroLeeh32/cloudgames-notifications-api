@@ -1,6 +1,6 @@
 ﻿
+using CloudGames.Notifications.Application.IntegrationEvents.Purchases;
 using CloudGames.Notifications.Application.UseCases;
-using CloudGames.Notifications.Contracts.IntegrationEvents.Purchases;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
@@ -21,18 +21,23 @@ namespace CloudGames.Notifications.Infrastructure.Messaging.Consumers
 
         public async Task Consume(ConsumeContext<PurchaseCreatedIntegrationEvent> context)
         {
+            var message = context.Message;
             try
             {
-                _logger.LogInformation(
-                "Received PurchaseCreatedIntegrationEvent for {Email}",
-                context.Message.Email);
 
-                await _useCase.ExecuteAsync(context.Message.Email, context.Message.Amount);
+                Console.WriteLine("Processing purchase event for user {UserId}", message.UserId);
+
+                await _useCase.ExecuteAsync(
+                    message.Email,
+                    message.Price,
+                    message.Status
+                  );
+
             }
 
             catch (Exception ex)
             {
-
+                Console.WriteLine("Purchase rejected for user {UserId}", message.UserId);
                 Console.WriteLine($"Error processing message PurchaseCreatedConsumer: {ex.Message}");
                 throw;
             }

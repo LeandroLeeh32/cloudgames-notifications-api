@@ -1,4 +1,5 @@
-﻿using CloudGames.Notifications.Application.Interfaces;
+﻿using CloudGames.Notifications.Application.IntegrationEvents.Purchases;
+using CloudGames.Notifications.Application.Interfaces;
 using CloudGames.Notifications.Application.UseCases;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -34,7 +35,27 @@ namespace CloudGames.Notifications.Tests.UseCases
                 .Setup(x => x.SendEmailAsync(email, subject, message))
                 .Returns(Task.CompletedTask);
 
-            await _useCase.ExecuteAsync(email, amount);
+            await _useCase.ExecuteAsync(email, amount, PaymentStatus.Approved);
+
+            _emailServiceMock.Verify(
+                x => x.SendEmailAsync(email, subject, message),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Deve_Enviar_Email_Rejeitado()
+        {
+            var email = "cliente@email.com";
+            var amount = 100;
+
+            var subject = "Purchase Confirmation";
+            var message = $"Your purchase of ${amount} was successfully completed.";
+
+            _emailServiceMock
+                .Setup(x => x.SendEmailAsync(email, subject, message))
+                .Returns(Task.CompletedTask);
+
+            await _useCase.ExecuteAsync(email, amount, PaymentStatus.Rejected);
 
             _emailServiceMock.Verify(
                 x => x.SendEmailAsync(email, subject, message),

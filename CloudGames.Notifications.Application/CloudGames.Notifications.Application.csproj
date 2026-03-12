@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CloudGames.Contracts\CloudGames.Contracts.csproj" />
     <ProjectReference Include="..\CloudGames.Notifications.Domain\CloudGames.Notifications.Domain.csproj" />
   </ItemGroup>
 

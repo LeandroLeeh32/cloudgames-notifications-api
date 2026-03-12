@@ -11,7 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CloudGames.Contracts\CloudGames.Contracts.csproj" />
     <ProjectReference Include="..\CloudGames.Notifications.Application\CloudGames.Notifications.Application.csproj" />
     <ProjectReference Include="..\CloudGames.Notifications.Infrastructure\CloudGames.Notifications.Infrastructure.csproj" />
   </ItemGroup>

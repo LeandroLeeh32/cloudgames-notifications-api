@@ -1,7 +1,9 @@
-﻿using CloudGames.Notifications.Application.Interfaces;
+﻿using CloudGames.Notifications.Application.IntegrationEvents.Purchases;
+using CloudGames.Notifications.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,19 +23,18 @@ namespace CloudGames.Notifications.Application.UseCases
             _logger = logger;
         }
 
-        public async Task ExecuteAsync(string email, decimal amount)
+        public async Task ExecuteAsync(string email, decimal price, PaymentStatus status)
         {
 
             var subject = "Purchase Confirmation";
-            var message = $"Your purchase of ${amount} was successfully completed.";
+            var message = $"Your purchase of ${price} was successfully completed.";
 
 
-            _logger.LogInformation(
-                "Sending purchase confirmation email to {Email} for amount {Amount}", email, amount);
+            if (status == PaymentStatus.Rejected)
+                message = $"Your purchase of ${price} was rejected. Please try again or contact support.";
 
             await _emailService.SendEmailAsync(email, subject, message);
 
-            _logger.LogInformation("Purchase confirmation email successfully sent to {Email}", email);
         }
     }
 }
