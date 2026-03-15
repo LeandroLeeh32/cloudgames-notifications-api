@@ -25,7 +25,7 @@ namespace CloudGames.Notifications.Infrastructure.Messaging.Consumers
             try
             {
 
-                Console.WriteLine("Processing purchase event for user {UserId}", message.UserId);
+                Console.WriteLine($"Processing purchase event for user {message.UserId.ToString()}");
 
                 await _useCase.ExecuteAsync(
                     message.Email,
@@ -37,7 +37,7 @@ namespace CloudGames.Notifications.Infrastructure.Messaging.Consumers
 
             catch (Exception ex)
             {
-                Console.WriteLine("Purchase rejected for user {UserId}", message.UserId);
+                Console.WriteLine(@"Purchase rejected for user {UserId}", message.UserId);
                 Console.WriteLine($"Error processing message PurchaseCreatedConsumer: {ex.Message}");
                 throw;
             }
