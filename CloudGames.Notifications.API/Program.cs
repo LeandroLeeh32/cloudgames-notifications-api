@@ -1,4 +1,4 @@
-using CloudGames.Notifications.Application.Interfaces;
+ï»¿using CloudGames.Notifications.Application.Interfaces;
 using CloudGames.Notifications.Application.UseCases;
 using CloudGames.Notifications.Infrastructure.Configuration;
 using CloudGames.Notifications.Infrastructure.Messaging.Consumers;
@@ -24,22 +24,17 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Remove todos os loggers padrão
     builder.Logging.ClearProviders();
-
-    // Usa somente NLog
     builder.Host.UseNLog();
 
     #endregion
 
-
     #region Configuration
 
-    builder.Services.Configure<MassTransitSettings>(
-        builder.Configuration.GetSection("MassTransit"));
+    //LENDO DE "RabbitMQ" 
+    builder.Services.Configure<MassTransitSettings>(builder.Configuration.GetSection("RabbitMQ"));
 
     #endregion
-
 
     #region Dependency Injection
 
@@ -51,7 +46,6 @@ try
 
     #endregion
 
-
     #region MassTransit
 
     builder.Services.AddMassTransit(x =>
@@ -61,10 +55,17 @@ try
 
         x.UsingRabbitMq((context, cfg) =>
         {
-            var settings = context
-                .GetRequiredService<IOptions<MassTransitSettings>>().Value;
+            var settings = context.GetRequiredService<IOptions<MassTransitSettings>>().Value;
 
-            cfg.Host(settings.Host, settings.VirtualHost, h =>
+            //LOCAL + DOCKER
+            var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
+            var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST")
+                             ?? (isDocker ? settings.Host : "localhost");
+
+            logger.Info($"RabbitMQ Host: {rabbitHost}");
+
+            cfg.Host(rabbitHost, settings.VirtualHost, h =>
             {
                 h.Username(settings.Username);
                 h.Password(settings.Password);
@@ -76,8 +77,7 @@ try
 
                 e.UseMessageRetry(r =>
                 {
-                    r.Interval(settings.RetryCount,
-                        TimeSpan.FromSeconds(settings.RetryIntervalSeconds));
+                    r.Interval(settings.RetryCount, TimeSpan.FromSeconds(settings.RetryIntervalSeconds));
                 });
             });
 
@@ -87,8 +87,7 @@ try
 
                 e.UseMessageRetry(r =>
                 {
-                    r.Interval(settings.RetryCount,
-                        TimeSpan.FromSeconds(settings.RetryIntervalSeconds));
+                    r.Interval(settings.RetryCount, TimeSpan.FromSeconds(settings.RetryIntervalSeconds));
                 });
             });
         });
@@ -96,13 +95,11 @@ try
 
     #endregion
 
-
     #region Build App
 
     var app = builder.Build();
 
     #endregion
-
 
     #region Endpoints
 

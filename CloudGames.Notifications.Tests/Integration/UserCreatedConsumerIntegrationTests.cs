@@ -50,7 +50,7 @@ namespace CloudGames.Notifications.Tests.Integration
             }
             finally
             {
-                await harness.Stop();
+                await provider.DisposeAsync();
             }
         }
     }
