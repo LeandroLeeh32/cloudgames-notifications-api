@@ -1,0 +1,56 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notifications-api
+  template:
+    metadata:
+      labels:
+        app: notifications-api
+    spec:
+      containers:
+        - name: notifications-api
+          image: fiapmicroservicos-notifications-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: ASPNETCORE_ENVIRONMENT
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_VIRTUAL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: RABBITMQ_VIRTUAL_HOST
+            - name: USER_CREATED_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: USER_CREATED_QUEUE
+            - name: PURCHASE_CREATED_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: PURCHASE_CREATED_QUEUE
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: notifications-secret
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notifications-secret
+                  key: RABBITMQ_PASSWORD

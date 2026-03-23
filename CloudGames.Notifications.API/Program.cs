@@ -3,6 +3,7 @@ using CloudGames.Notifications.Application.UseCases;
 using CloudGames.Notifications.Infrastructure.Configuration;
 using CloudGames.Notifications.Infrastructure.Messaging.Consumers;
 using CloudGames.Notifications.Infrastructure.Services;
+using FIAP.Messages;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using NLog;
@@ -31,7 +32,6 @@ try
 
     #region Configuration
 
-    //LENDO DE "RabbitMQ" 
     builder.Services.Configure<MassTransitSettings>(builder.Configuration.GetSection("RabbitMQ"));
 
     #endregion
@@ -57,21 +57,40 @@ try
         {
             var settings = context.GetRequiredService<IOptions<MassTransitSettings>>().Value;
 
-            //LOCAL + DOCKER
-            var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+            var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "rabbitmq-service";
 
-            var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST")
-                             ?? (isDocker ? settings.Host : "localhost");
+            var rabbitVirtualHost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUAL_HOST")
+                                     ?? settings.VirtualHost
+                                     ?? "/";
 
+            var rabbitUsername = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")
+                                 ?? settings.Username
+                                 ?? throw new InvalidOperationException("RABBITMQ_USERNAME não configurado.");
+
+            var rabbitPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")
+                                 ?? settings.Password
+                                 ?? throw new InvalidOperationException("RABBITMQ_PASSWORD não configurado.");
+
+            var userCreatedQueue = Environment.GetEnvironmentVariable("USER_CREATED_QUEUE")
+                                   ?? settings.Queues.UserCreated
+                                   ?? throw new InvalidOperationException("USER_CREATED_QUEUE não configurada.");
+
+            var paymentProcessedQueue = Environment.GetEnvironmentVariable("PURCHASE_CREATED_QUEUE")
+                                       ?? settings.Queues.PurchaseCreated
+                                       ?? throw new InvalidOperationException("PURCHASE_CREATED_QUEUE não configurada.");
+
+            logger.Info("PROGRAM NOVA DO NOTIFICATIONS");
             logger.Info($"RabbitMQ Host: {rabbitHost}");
+            logger.Info($"UserCreated Queue: {userCreatedQueue}");
+            logger.Info($"PurchaseCreated Queue: {paymentProcessedQueue}");
 
-            cfg.Host(rabbitHost, settings.VirtualHost, h =>
+            cfg.Host(rabbitHost, rabbitVirtualHost, h =>
             {
-                h.Username(settings.Username);
-                h.Password(settings.Password);
+                h.Username(rabbitUsername);
+                h.Password(rabbitPassword);
             });
 
-            cfg.ReceiveEndpoint(settings.Queues.UserCreated, e =>
+            cfg.ReceiveEndpoint(userCreatedQueue, e =>
             {
                 e.ConfigureConsumer<UserCreatedConsumer>(context);
 
@@ -81,7 +100,9 @@ try
                 });
             });
 
-            cfg.ReceiveEndpoint(settings.Queues.PurchaseCreated, e =>
+            cfg.Message<PaymentProcessedEvent>(x => x.SetEntityName("PaymentProcessedEvent"));
+
+            cfg.ReceiveEndpoint(paymentProcessedQueue, e =>
             {
                 e.ConfigureConsumer<PurchaseCreatedConsumer>(context);
 

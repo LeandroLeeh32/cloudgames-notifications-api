@@ -1,12 +1,13 @@
 ﻿
 using CloudGames.Notifications.Application.IntegrationEvents.Purchases;
 using CloudGames.Notifications.Application.UseCases;
+using FIAP.Messages;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace CloudGames.Notifications.Infrastructure.Messaging.Consumers
 {
-    public class PurchaseCreatedConsumer : IConsumer<PurchaseCreatedIntegrationEvent>
+    public class PurchaseCreatedConsumer : IConsumer<PaymentProcessedEvent>
     {
         private readonly SendPurchaseConfirmationEmailUseCase _useCase;
         private readonly ILogger<PurchaseCreatedConsumer> _logger;
@@ -19,7 +20,7 @@ namespace CloudGames.Notifications.Infrastructure.Messaging.Consumers
             _logger = logger;
         }
 
-        public async Task Consume(ConsumeContext<PurchaseCreatedIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<PaymentProcessedEvent> context)
         {
             var message = context.Message;
             try

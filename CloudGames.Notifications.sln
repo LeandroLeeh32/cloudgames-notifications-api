@@ -3,19 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36717.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudGames.Notifications.API", "CloudGames.Notifications.API\CloudGames.Notifications.API.csproj", "{4BD849FC-C066-4B3C-AF46-A5589A5BE312}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudGames.Notifications.API", "CloudGames.Notifications.API\CloudGames.Notifications.API.csproj", "{4BD849FC-C066-4B3C-AF46-A5589A5BE312}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudGames.Notifications.Application", "CloudGames.Notifications.Application\CloudGames.Notifications.Application.csproj", "{A48CB571-ACB8-4D81-8723-F9D382EC9A86}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudGames.Notifications.Application", "CloudGames.Notifications.Application\CloudGames.Notifications.Application.csproj", "{A48CB571-ACB8-4D81-8723-F9D382EC9A86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudGames.Notifications.Domain", "CloudGames.Notifications.Domain\CloudGames.Notifications.Domain.csproj", "{AC37CA7F-26BF-4268-9357-DB325D4531E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudGames.Notifications.Domain", "CloudGames.Notifications.Domain\CloudGames.Notifications.Domain.csproj", "{AC37CA7F-26BF-4268-9357-DB325D4531E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudGames.Notifications.Infrastructure", "CloudGames.Notifications.Infrastructure\CloudGames.Notifications.Infrastructure.csproj", "{11EB79A6-51A8-4BDC-B270-E33BC424EC18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudGames.Notifications.Infrastructure", "CloudGames.Notifications.Infrastructure\CloudGames.Notifications.Infrastructure.csproj", "{11EB79A6-51A8-4BDC-B270-E33BC424EC18}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{CDE0545A-411A-4E5E-B97D-8B0211A1D84D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudGames.Notifications.Tests", "CloudGames.Notifications.Tests\CloudGames.Notifications.Tests.csproj", "{F7A0D9C2-53BB-46B0-BA83-34D8AC76EC90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudGames.Notifications.Tests", "CloudGames.Notifications.Tests\CloudGames.Notifications.Tests.csproj", "{F7A0D9C2-53BB-46B0-BA83-34D8AC76EC90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
