@@ -1,4 +1,5 @@
-﻿using CloudGames.Notifications.Application.Interfaces;
+﻿using CloudGames.Notifications.Application.IntegrationEvents.Users;
+using CloudGames.Notifications.Application.Interfaces;
 using CloudGames.Notifications.Application.UseCases;
 using CloudGames.Notifications.Infrastructure.Configuration;
 using CloudGames.Notifications.Infrastructure.Messaging.Consumers;
@@ -100,8 +101,6 @@ try
                 });
             });
 
-            cfg.Message<PaymentProcessedEvent>(x => x.SetEntityName("PaymentProcessedEvent"));
-
             cfg.ReceiveEndpoint(paymentProcessedQueue, e =>
             {
                 e.ConfigureConsumer<PurchaseCreatedConsumer>(context);
@@ -111,6 +110,9 @@ try
                     r.Interval(settings.RetryCount, TimeSpan.FromSeconds(settings.RetryIntervalSeconds));
                 });
             });
+
+            cfg.Message<PaymentProcessedEvent>(x => x.SetEntityName("PaymentProcessedEvent"));
+            cfg.Message<UserCreatedIntegrationEvent>(x => x.SetEntityName("UserCreatedIntegrationEvent"));
         });
     });
 
