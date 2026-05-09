@@ -1,4 +1,6 @@
-﻿using CloudGames.Notifications.Application.Interfaces;
+using CloudGames.Notifications.API.Logging;
+using CloudGames.Notifications.Application.IntegrationEvents.Users;
+using CloudGames.Notifications.Application.Interfaces;
 using CloudGames.Notifications.Application.UseCases;
 using CloudGames.Notifications.Infrastructure.Configuration;
 using CloudGames.Notifications.Infrastructure.Messaging.Consumers;
@@ -6,29 +8,16 @@ using CloudGames.Notifications.Infrastructure.Services;
 using FIAP.Messages;
 using MassTransit;
 using Microsoft.Extensions.Options;
-using NLog;
-using NLog.Web;
-
-#region Logging
-
-var logger = LogManager.Setup()
-    .LoadConfigurationFromFile("nlog.config")
-    .GetCurrentClassLogger();
-
-#endregion
+using Prometheus;
+using Serilog;
 
 try
 {
-    logger.Info("Starting CloudGames.Notifications...");
-
-    #region Builder
-
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Logging.ClearProviders();
-    builder.Host.UseNLog();
+    builder.Host.UseCloudGamesLogging("notifications-api");
 
-    #endregion
+    Log.Information("Starting CloudGames.Notifications...");
 
     #region Configuration
 
@@ -79,10 +68,9 @@ try
                                        ?? settings.Queues.PurchaseCreated
                                        ?? throw new InvalidOperationException("PURCHASE_CREATED_QUEUE não configurada.");
 
-            logger.Info("PROGRAM NOVA DO NOTIFICATIONS");
-            logger.Info($"RabbitMQ Host: {rabbitHost}");
-            logger.Info($"UserCreated Queue: {userCreatedQueue}");
-            logger.Info($"PurchaseCreated Queue: {paymentProcessedQueue}");
+            Log.Information("RabbitMQ Host: {RabbitHost}", rabbitHost);
+            Log.Information("UserCreated Queue: {UserCreatedQueue}", userCreatedQueue);
+            Log.Information("PurchaseCreated Queue: {PurchaseCreatedQueue}", paymentProcessedQueue);
 
             cfg.Host(rabbitHost, rabbitVirtualHost, h =>
             {
@@ -100,8 +88,6 @@ try
                 });
             });
 
-            cfg.Message<PaymentProcessedEvent>(x => x.SetEntityName("PaymentProcessedEvent"));
-
             cfg.ReceiveEndpoint(paymentProcessedQueue, e =>
             {
                 e.ConfigureConsumer<PurchaseCreatedConsumer>(context);
@@ -111,21 +97,24 @@ try
                     r.Interval(settings.RetryCount, TimeSpan.FromSeconds(settings.RetryIntervalSeconds));
                 });
             });
+
+
+            cfg.Message<PaymentProcessedEvent>(x => x.SetEntityName("PaymentProcessedEvent"));
+            cfg.Message<UserCreatedIntegrationEvent>(x => x.SetEntityName("UserCreatedIntegrationEvent"));
         });
     });
 
     #endregion
 
-    #region Build App
-
     var app = builder.Build();
 
-    #endregion
+    app.UseHttpMetrics();
 
     #region Endpoints
 
     app.MapGet("/", () => "CloudGames.Notifications API running...");
     app.MapHealthChecks("/health");
+    app.MapMetrics();
 
     #endregion
 
@@ -133,10 +122,10 @@ try
 }
 catch (Exception ex)
 {
-    logger.Error(ex, "Application stopped because of exception");
+    Log.Fatal(ex, "Application stopped because of exception");
     throw;
 }
 finally
 {
-    LogManager.Shutdown();
+    Log.CloseAndFlush();
 }

@@ -1,4 +1,4 @@
-﻿apiVersion: v1
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: notifications-config
@@ -8,3 +8,5 @@ data:
   RABBITMQ_VIRTUAL_HOST: "/"
   USER_CREATED_QUEUE: "user-created-queue"
   PURCHASE_CREATED_QUEUE: "purchase-created-queue"
+  Redis__ConnectionString: "redis-service:6379"
+  Redis__LogStream: "cloudgames:logs"

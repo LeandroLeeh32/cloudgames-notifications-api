@@ -44,6 +44,16 @@ spec:
                 configMapKeyRef:
                   name: notifications-config
                   key: PURCHASE_CREATED_QUEUE
+            - name: Redis__ConnectionString
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: Redis__ConnectionString
+            - name: Redis__LogStream
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: Redis__LogStream
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
