@@ -21,23 +21,35 @@ public class UserCreatedFunction
     [Function("UserCreatedFunction")]
     public async Task Run([RabbitMQTrigger("UserCreated",ConnectionStringSetting = "RabbitMQConnection")]string message)
     {
-
-        var json = JsonNode.Parse(message);
-        var payload = json?["message"];
-
-        var userEvent = payload?.Deserialize<UserCreatedIntegrationEvent>(new JsonSerializerOptions
+        try
         {
-            PropertyNameCaseInsensitive = true
-        });
+            _logger.LogInformation("Starting processing UserCreated event");
 
-        if (userEvent is null)
-        {
-            _logger.LogError("Erro ao desserializar evento");
-            return;
+            var json = JsonNode.Parse(message);
+            var payload = json?["message"];
+
+            var userEvent = payload?.Deserialize<UserCreatedIntegrationEvent>(
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (userEvent is null)
+            {
+                _logger.LogError("Erro ao desserializar evento");
+                return;
+            }
+
+            _logger.LogInformation("Processing user creation for Email: {Email}",userEvent.Email);
+
+            await _useCase.ExecuteAsync(userEvent.Name,userEvent.Email);
+
+            _logger.LogInformation("UserCreated event processed successfully");
         }
-
-        await _useCase.ExecuteAsync(
-            userEvent.Name,
-            userEvent.Email);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,"Error processing UserCreated event");
+            throw;
+        }
     }
 }

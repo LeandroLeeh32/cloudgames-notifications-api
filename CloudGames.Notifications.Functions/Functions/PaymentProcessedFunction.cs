@@ -23,27 +23,38 @@ public class PaymentProcessedFunction
     }
 
     [Function("PaymentProcessedFunction")]
-    public async Task Run( [RabbitMQTrigger( "PaymentProcessed",ConnectionStringSetting = "RabbitMQConnection")] string message)
+    public async Task Run([RabbitMQTrigger("PaymentProcessed", ConnectionStringSetting = "RabbitMQConnection")]string message)
     {
-
-        var json = JsonNode.Parse(message);
-        var payload = json?["message"];
-
-        var paymentEvent = payload?.Deserialize<PaymentProcessedEvent>(new JsonSerializerOptions
-       {
-           PropertyNameCaseInsensitive = true,
-           NumberHandling = JsonNumberHandling.AllowReadingFromString
-       });
-
-        if (paymentEvent is null)
+        try
         {
-            _logger.LogError(
-                "Erro ao desserializar PaymentProcessedEvent");
+            _logger.LogInformation("Starting processing PaymentProcessed event");
 
-            return;
+            var json = JsonNode.Parse(message);
+            var payload = json?["message"];
+
+            var paymentEvent = payload?.Deserialize<PaymentProcessedEvent>(
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    NumberHandling = JsonNumberHandling.AllowReadingFromString
+                });
+
+            if (paymentEvent is null)
+            {
+                _logger.LogError("Erro ao desserializar PaymentProcessedEvent");
+                return;
+            }
+
+            _logger.LogInformation("Processing payment for Email: {Email} - Status: {Status}",paymentEvent.Email,paymentEvent.Status);
+
+            await _useCase.ExecuteAsync(paymentEvent.Email,paymentEvent.Price,paymentEvent.Status);
+
+            _logger.LogInformation("PaymentProcessed event processed successfully");
         }
-
-        await _useCase.ExecuteAsync(paymentEvent.Email,paymentEvent.Price,paymentEvent.Status);
-
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,"Error processing PaymentProcessed event");
+            throw;
+        }
     }
 }
