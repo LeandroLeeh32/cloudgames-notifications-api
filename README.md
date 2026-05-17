@@ -253,7 +253,7 @@ catch(Exception ex)
 
 ---
 
-# Executando o Ambiente Local
+# Executando o Ambiente Local (Simulador do ambiente de infra - serveless)
 
 A arquitetura serverless pode ser executada localmente utilizando RabbitMQ + Azure Functions.
 
@@ -265,8 +265,15 @@ O ambiente é iniciado em etapas.
 
 Execute o comando abaixo na raiz do projeto Notification:
 
-docker compose up -d
+docker compose down
 
+Caso seja necessário limpar completamente o ambiente:
+
+docker volume prune -f
+
+SUBINDO O AMBIENTE RABBIT
+
+docker compose up -d
 
 Esse comando irá:
 
@@ -281,11 +288,27 @@ Portas utilizadas:
 - 5672 → comunicação AMQP
 - 15672 → painel administrativo
 
+Painel administrativo:
+
+http://localhost:15672
+
+Credenciais padrão:
+
+usuario: guest
+senha: guest
+
+
 ---
 
 ## 2. Executar Azurite
 
+libere a porta 10000
+
 Executar em outro terminal:
+
+Get-NetTCPConnection -LocalPort 10000 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+Executar em outro terminal: 
 
 azurite
 
@@ -319,29 +342,29 @@ UserCreatedFunction
 
 ## 4. Publicar Eventos de Teste
 
-Os eventos podem ser publicados através do projeto publisher, utilizando MassTransit.
+Os eventos podem ser publicados através dos executáveis disponibilizados na pasta:
 
-Exemplo:
+teste-local
 
+Exemplo de caminho utilizado no ambiente local:
 
-await bus.Publish<PaymentProcessedEvent>(paymentEvent);
+\Notification\teste-local
 
+Os executáveis foram gerados como aplicações standalone utilizando .NET Publish Single File, permitindo execução sem necessidade de instalação do SDK .NET ou Visual Studio.
 
----
+Exemplos:
 
-## 5. Acessar RabbitMQ
+- CloudGames.TestPublisher-payment.exe
+- CloudGames.TestPublisher-user.exe
 
-Painel administrativo:
+Basta executar o arquivo `.exe` correspondente ao evento desejado.
 
+Ao executar:
 
-http://localhost:15672
-
-
-Credenciais padrão:
-
-
-usuario: guest
-senha: guest
+- o evento será publicado no RabbitMQ
+- a exchange será acionada
+- o binding encaminhará a mensagem para a fila
+- a Azure Function Trigger será executada automaticamente
 
 
 ---
@@ -355,7 +378,6 @@ Caso seja necessário limpar completamente o ambiente:
 docker volume prune -f
 
 ---
-
 
 # Execução em Ambiente Orquestrado
 
@@ -410,18 +432,6 @@ As Functions são executadas somente quando novas mensagens chegam ao broker, ca
 - Event Driven Architecture
 - Azure Functions Isolated Worker
 
----
-
-# Plataforma CloudGames
-
-A plataforma CloudGames é composta pelos seguintes microsserviços:
-
-- UsersAPI
-- CatalogAPI
-- PaymentsAPI
-- Notifications Serverless Functions
-
-Todos os serviços se comunicam através de eventos de integração.
 
 ---
 
