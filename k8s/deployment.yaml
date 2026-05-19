@@ -1,66 +1,33 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notifications-api
+  name: notifications-functions
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notifications-api
+      app: notifications-functions
   template:
     metadata:
       labels:
-        app: notifications-api
+        app: notifications-functions
     spec:
       containers:
-        - name: notifications-api
-          image: fiapmicroservicos-notifications-api:latest
+        - name: notifications-functions
+          image: fiapmicroservicos-notifications-functions:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 80
           env:
-            - name: ASPNETCORE_ENVIRONMENT
+            - name: FUNCTIONS_WORKER_RUNTIME
+              value: dotnet-isolated
+            - name: AzureWebJobsStorage
               valueFrom:
                 configMapKeyRef:
                   name: notifications-config
-                  key: ASPNETCORE_ENVIRONMENT
-            - name: RABBITMQ_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: notifications-config
-                  key: RABBITMQ_HOST
-            - name: RABBITMQ_VIRTUAL_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: notifications-config
-                  key: RABBITMQ_VIRTUAL_HOST
-            - name: USER_CREATED_QUEUE
-              valueFrom:
-                configMapKeyRef:
-                  name: notifications-config
-                  key: USER_CREATED_QUEUE
-            - name: PURCHASE_CREATED_QUEUE
-              valueFrom:
-                configMapKeyRef:
-                  name: notifications-config
-                  key: PURCHASE_CREATED_QUEUE
-            - name: Redis__ConnectionString
-              valueFrom:
-                configMapKeyRef:
-                  name: notifications-config
-                  key: Redis__ConnectionString
-            - name: Redis__LogStream
-              valueFrom:
-                configMapKeyRef:
-                  name: notifications-config
-                  key: Redis__LogStream
-            - name: RABBITMQ_USERNAME
+                  key: AzureWebJobsStorage
+            - name: RabbitMQConnection
               valueFrom:
                 secretKeyRef:
                   name: notifications-secret
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: notifications-secret
-                  key: RABBITMQ_PASSWORD
+                  key: RabbitMQConnection

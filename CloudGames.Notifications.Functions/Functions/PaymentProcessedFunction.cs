@@ -1,5 +1,4 @@
-﻿using CloudGames.Notifications.Application.IntegrationEvents.Purchases;
-using CloudGames.Notifications.Application.UseCases;
+﻿using CloudGames.Notifications.Application.UseCases;
 using FIAP.Messages;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;

@@ -16,8 +16,6 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ" Version="2.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.RabbitMQ" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0-preview.4.26230.115" />
   </ItemGroup>
 
   <ItemGroup>
