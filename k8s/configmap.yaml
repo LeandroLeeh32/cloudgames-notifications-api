@@ -3,10 +3,4 @@ kind: ConfigMap
 metadata:
   name: notifications-config
 data:
-  ASPNETCORE_ENVIRONMENT: "Production"
-  RABBITMQ_HOST: "rabbitmq-service"
-  RABBITMQ_VIRTUAL_HOST: "/"
-  USER_CREATED_QUEUE: "user-created-queue"
-  PURCHASE_CREATED_QUEUE: "purchase-created-queue"
-  Redis__ConnectionString: "redis-service:6379"
-  Redis__LogStream: "cloudgames:logs"
+  AzureWebJobsStorage: "UseDevelopmentStorage=true"

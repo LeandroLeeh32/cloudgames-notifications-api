@@ -1,96 +1,77 @@
-# CloudGames Notifications Service
+# CloudGames Notifications Serverless Functions
 
-O **CloudGames Notifications Service** é um microserviço responsável pelo processamento de notificações dentro da plataforma **CloudGames**.
+O **CloudGames Notifications Serverless Functions** é responsável pelo processamento de notificações da plataforma **CloudGames** utilizando arquitetura **Serverless** baseada em **Azure Functions**.
+A solução foi refatorada a partir de uma arquitetura tradicional baseada em consumers contínuos para um modelo orientado a eventos utilizando **Functions acionadas sob demanda** através de mensagens recebidas no **RabbitMQ**.
 
-Este serviço consome eventos publicados por outros microserviços e executa ações relacionadas a notificações, como envio de e-mails ou outras comunicações ao usuário.
+# Arquitetura Serverless
 
-A comunicação entre os serviços segue o padrão **Event Driven Architecture (EDA)** utilizando **RabbitMQ** como broker de mensagens e **MassTransit** como biblioteca de mensageria em .NET.
+A arquitetura utiliza:
+
+- Azure Functions
+- RabbitMQ Trigger
+- processamento sob demanda
+- execução orientada a eventos
+
+As Functions são executadas apenas quando uma nova mensagem é recebida no broker.
+
+Fluxo atual:
+
+UsersAPI / PaymentAPI
+│
+│ publica evento
+▼
+RabbitMQ
+│
+│ mensagem recebida
+▼
+Azure Functions
+│
+▼
+UseCases
+│
+▼
+EmailService
+
+
+Essa abordagem reduz consumo de recursos e melhora a escalabilidade da solução.
 
 ---
 
-# Arquitetura
+# Arquitetura do Projeto
 
 O projeto segue princípios de **Clean Architecture**, separando responsabilidades em diferentes camadas.
 
 
 CloudGames.Notifications
 │
-├── CloudGames.Notifications.API
-│ Camada responsável pela configuração da aplicação,
-│ mensageria e consumers de eventos
+├── CloudGames.Notifications.Functions
+│ Camada responsável pelas Azure Functions e RabbitMQ Triggers
 │
 ├── CloudGames.Notifications.Application
-│ Camada responsável pelos casos de uso da aplicação
+│ Camada responsável pelos casos de uso
 │
-└── CloudGames.Contracts
-Contratos compartilhados contendo os eventos de integração
+├── CloudGames.Notifications.Infrastructure
+│ Serviços externos e infraestrutura
+│
+├── CloudGames.Notifications.Domain
+│ Regras de negócio
 
 
 Essa separação permite:
 
-- baixo acoplamento entre camadas
-- maior facilidade de manutenção
-- melhor testabilidade
-- evolução independente dos serviços
+- baixo acoplamento
+- melhor manutenção
+- maior testabilidade
+- reutilização de regras de negócio
+- evolução independente das camadas
 
 ---
 
 # Arquitetura Orientada a Eventos (EDA)
 
-A comunicação entre microserviços é feita de forma **assíncrona através de eventos**.
-
-Em vez de um serviço chamar diretamente outro serviço via API, ele publica um evento informando que algo aconteceu.
-
+A comunicação entre os microsserviços é feita através de eventos publicados no RabbitMQ.
+Os serviços não se comunicam diretamente via HTTP para notificações.
 Fluxo simplificado:
-
-
-UsersAPI
-│
-│ Publica evento
-▼
-RabbitMQ
-│
-│ Mensagem enviada para fila
-▼
-NotificationsAPI
-│
-▼
-Processamento da notificação
-
-
-Exemplo de cenário:
-
-1. O **UsersAPI** cria um novo usuário
-2. Publica o evento `UserCreatedIntegrationEvent`
-3. O **NotificationsAPI** consome o evento
-4. O sistema envia um e-mail de boas-vindas
-
----
-
-# Conceitos de Mensageria Utilizados
-
-Este microserviço utiliza conceitos importantes para garantir **resiliência, escalabilidade e baixo acoplamento entre serviços**.
-
----
-
-# Integration Events
-
-## O que é
-
-Um **Integration Event** é um evento publicado por um microserviço para informar outros microserviços que algo aconteceu no sistema.
-
-Esses eventos permitem que os serviços se comuniquem **sem dependência direta entre APIs**.
-
-## Exemplo
-
-Quando um usuário é criado no **UsersAPI**, um evento é publicado:
-
-
-UserCreatedIntegrationEvent
-
-
-Fluxo:
-
 
 UsersAPI
 │
@@ -99,211 +80,373 @@ UsersAPI
 RabbitMQ
 │
 ▼
-NotificationsAPI
+UserCreatedFunction
+SendWelcomeEmailUseCase
 
-
-O **NotificationsAPI** consome o evento e executa ações como envio de notificações.
 
 ---
 
-# Retry Policy
+# Azure Functions
 
-## O que é
+A solução utiliza Azure Functions no modelo:
 
-**Retry Policy** significa tentar novamente quando ocorre uma falha no processamento de uma mensagem.
+- .NET 8
+- Isolated Worker
+- RabbitMQ Trigger
 
-Falhas podem ocorrer por diversos motivos, como:
+Functions implementadas:
 
-- falhas temporárias de rede
-- serviço externo indisponível
-- timeout de comunicação
-
-Para evitar perda de mensagens, o sistema tenta novamente antes de considerar a falha definitiva.
-
-## Exemplo de configuração
-
-O projeto utiliza **MassTransit Retry Policy**.
-
-
-RetryCount: 3
-RetryIntervalSeconds: 5
-
-
-Significado:
-
-- se o processamento da mensagem falhar
-- o sistema tentará novamente **3 vezes**
-- aguardando **5 segundos entre cada tentativa**
+- UserCreatedFunction
+- PaymentProcessedFunction
 
 ---
 
-# Dead Letter Queue (DLQ)
+# RabbitMQ Trigger
 
-## O que é
+As Functions são acionadas automaticamente quando novas mensagens chegam ao RabbitMQ.
+Exemplo:
 
-Quando uma mensagem falha várias vezes e não pode ser processada com sucesso, ela é enviada para uma fila especial chamada:
-
-**Dead Letter Queue (DLQ)**
-
-Também conhecida como:
-
-
-fila de mensagens mortas
-
-
-## Para que serve
-
-A DLQ permite:
-
-- armazenar mensagens que falharam
-- evitar perda de dados
-- possibilitar análise posterior do erro
-
-## Fluxo
-
-
-Mensagem enviada
-│
-▼
-Consumer tenta processar
-│
-▼
-Falha
-│
-▼
-Retry Policy executa tentativas
-│
-▼
-Falha após várias tentativas
-│
-▼
-Mensagem enviada para Dead Letter Queue
-
+[Function("UserCreatedFunction")]
+public async Task Run([RabbitMQTrigger("UserCreated",ConnectionStringSetting = "RabbitMQConnection")] string message)
 
 ---
 
 # Eventos de Integração
 
-Os eventos são definidos no projeto **CloudGames.Contracts**.
+Os eventos de integração estão definidos dentro da camada:
+
+CloudGames.Notifications.Application
 
 Estrutura:
 
-
-CloudGames.Contracts
+CloudGames.Notifications.Application
 │
 └── IntegrationEvents
-│
-├── BaseEvent.cs
 │
 ├── Users
 │ └── UserCreatedIntegrationEvent.cs
 │
 └── Purchases
-└── PurchaseCreatedIntegrationEvent.cs
+└── PaymentProcessedEvent.cs
 
+---
 
-### UserCreatedIntegrationEvent
+# UserCreatedIntegrationEvent
 
-Evento publicado quando um novo usuário é criado.
+Evento publicado quando um usuário é criado.
 
 Exemplo de uso:
 
 - envio de e-mail de boas-vindas
-- início do fluxo de onboarding
 
 ---
 
-### PurchaseCreatedIntegrationEvent
+# PaymentProcessedEvent
 
-Evento publicado quando uma compra é realizada.
+Evento publicado quando uma compra é processada.
 
 Exemplo de uso:
 
 - envio de confirmação de compra
-- notificação para sistemas de pagamento ou faturamento
 
 ---
 
-# Logging
+# Arquitetura de Mensageria
 
-O projeto utiliza **NLog** para registro de logs da aplicação.
+A arquitetura utiliza RabbitMQ como broker de mensageria para comunicação assíncrona entre os microsserviços.
+O publisher utiliza **MassTransit** para publicação de eventos, enquanto a NotificationsAPI foi migrada para **Azure Functions utilizando RabbitMQ Trigger**.
+o RabbitMQ Trigger não realiza criação automática de:
 
-Os logs incluem:
+- exchanges
+- queues
+- bindings
 
-- consumo de mensagens
-- execução de casos de uso
-- falhas no processamento
-- envio de notificações
+Por esse motivo, o ambiente foi configurado para provisionar previamente os recursos necessários através de definitions.json
 
-Exemplo de log:
+---
+
+# Fluxo Esperado da Mensageria
+
+Publisher
+↓
+Exchange
+↓
+Binding
+↓
+Queue
+↓
+Azure Function Trigger
+
+---
+
+# Convenções de Exchanges do MassTransit
+
+O MassTransit publica eventos utilizando convenções internas baseadas nos tipos dos contratos de integração.
+
+Exemplo de exchange criada automaticamente:
+
+FIAP.Messages:PaymentProcessedEvent
+
+Durante a integração foi necessário alinhar os bindings do RabbitMQ para consumir corretamente os eventos publicados pelo MassTransit.
+
+---
+
+# Provisionamento das Filas e Exchanges
+
+O provisionamento do RabbitMQ foi configurado através de:
+
+definitions.json
+
+Esse arquivo é carregado automaticamente durante o startup do container RabbitMQ via Docker Compose.
+
+Com isso, o ambiente sobe automaticamente contendo:
+
+- exchanges
+- queues
+- bindings
+- permissões
+- usuários
+
+Sem necessidade de configuração manual.
+
+---
+
+## Ambiente Local 
+
+Para simplificação de testes locais:
+
+- RabbitMQ é executado via Docker Compose
+- Azure Functions roda localmente
+- Azurite é utilizado como emulador local do Azure Storage
+- filas e bindings são provisionados automaticamente via definitions.json
+
+---
+
+# Retry e Resiliência
+
+A solução possui tratamento de falhas utilizando:
+
+- try/catch
+- logging estruturado
+- retry indireto através do RabbitMQ
+
+Quando ocorre uma falha no processamento:
+
+- a exceção é registrada
+- a mensagem pode ser reenfileirada
+- o processamento pode ser executado novamente
+
+Exemplo:
 
 
-Sending welcome email to user@example.com
+try
+{
+    await _useCase.ExecuteAsync(...);
+}
+catch(Exception ex)
+{
+    _logger.LogError(ex, "Erro ao processar evento");
 
-Email successfully sent
-Message processing failed
+    throw;
+}
 
 
 ---
 
-# Executando RabbitMQ Localmente
+# Executando o Ambiente Local (Simulador do ambiente de infra - serveless)
 
-Para rodar RabbitMQ localmente utilizando Docker:
+A arquitetura serverless pode ser executada localmente utilizando RabbitMQ + Azure Functions.
 
+O ambiente é iniciado em etapas.
 
-docker run -d
---hostname rabbit
---name rabbitmq
--p 5672:5672
--p 15672:15672
-rabbitmq:3-management
+---
 
+## Ambiente necessário para rodar local a infra
 
-Painel de administração:
+1. Node.js / versão LTS
+2. Instalar o Azurite
+3. Azure Functions Core Tools
+4. Docker Desktop (para RabbitMQ)
+5. .NET 8 SDK
 
+---
+
+## 1. Subir RabbitMQ
+
+Execute o comando abaixo na raiz do projeto Notification:
+
+docker compose down
+
+Caso seja necessário limpar completamente o ambiente:
+
+docker volume prune -f
+
+SUBINDO O AMBIENTE RABBIT
+
+docker compose up -d
+
+Esse comando irá:
+
+- iniciar o container RabbitMQ
+- disponibilizar o broker localmente
+- abrir as portas necessárias para comunicação
+- disponibilizar o painel administrativo do RabbitMQ
+- provisionar exchanges, queues e bindings automaticamente
+
+Portas utilizadas:
+
+- 5672 → comunicação AMQP
+- 15672 → painel administrativo
+
+Painel administrativo:
 
 http://localhost:15672
 
-
 Credenciais padrão:
-
 
 usuario: guest
 senha: guest
 
+---
+
+## 2. Executar Azurite
+
+libere a porta 10000
+
+Executar em outro terminal:
+
+Get-NetTCPConnection -LocalPort 10000 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+Executar em outro terminal: 
+
+azurite
+
+Azurite é utilizado como emulador local do Azure Storage necessário para execução do runtime das Azure Functions.
+
+---
+
+## 3. Executar Azure Functions
+
+Abra um terminal dentro da pasta:
+
+CloudGames.Notifications.Functions 
+
+Execute:
+
+func start
+
+Esse comando irá:
+
+- iniciar o runtime local das Azure Functions
+- carregar os RabbitMQ Triggers
+- ativar as Functions serverless
+- começar a escutar mensagens recebidas no RabbitMQ
+
+Functions carregadas:
+
+PaymentProcessedFunction
+UserCreatedFunction
+
+---
+
+## 4. Publicar Eventos de Teste
+
+Os eventos podem ser publicados através dos executáveis disponibilizados na pasta:
+
+teste-local
+
+Exemplo de caminho utilizado no ambiente local:
+
+\Notification\teste-local
+
+Os executáveis presentes na pasta teste-local permitem publicar eventos de teste sem necessidade de Visual Studio ou SDK .NET instalado.
+Os executáveis foram gerados como aplicações standalone utilizando .NET Publish Single File, permitindo execução sem necessidade de instalação do SDK .NET ou Visual Studio.
+
+Exemplos:
+
+- CloudGames.TestPublisher-payment.exe
+- CloudGames.TestPublisher-user.exe
+
+Basta executar o arquivo `.exe` correspondente ao evento desejado.
+
+Ao executar:
+
+- o evento será publicado no RabbitMQ
+- a exchange será acionada
+- o binding encaminhará a mensagem para a fila
+- a Azure Function Trigger será executada automaticamente
+
+
+---
+
+## 6. Derrubar containers
+
+docker compose down
+
+Caso seja necessário limpar completamente o ambiente:
+
+docker volume prune -f
+
+---
+
+# Execução em Ambiente Orquestrado
+
+A solução também pode ser executada em ambiente orquestrado utilizando:
+
+- Kubernetes
+- Docker Compose
+- Docker Desktop Kubernetes
+
+Nesse cenário:
+
+- RabbitMQ sobe como serviço/container da infraestrutura
+- Azure Functions executa containerizada
+- os serviços se comunicam através da rede interna do orquestrador
+
+Exemplo de hostname utilizado no ambiente orquestrado:
+
+rabbitmq
+
+---
+
+# Fluxo Completo da Arquitetura
+
+
+UsersAPI / CatalogAPI
+        ↓
+RabbitMQ
+        ↓
+Azure Functions Runtime
+        ↓
+RabbitMQ Trigger
+        ↓
+UseCases
+        ↓
+EmailService
+
+
+As Functions são executadas somente quando novas mensagens chegam ao broker, caracterizando uma arquitetura orientada a eventos utilizando modelo serverless.
 
 ---
 
 # Tecnologias Utilizadas
 
-Este projeto utiliza as seguintes tecnologias:
-
 - .NET 8
-- MassTransit
+- Azure Functions
 - RabbitMQ
-- NLog
+- Docker
+- Kubernetes
+- MassTransit
+- Azurite
 - Clean Architecture
 - Event Driven Architecture
+- Azure Functions Isolated Worker
 
----
-
-# Plataforma CloudGames
-
-A plataforma CloudGames é composta por múltiplos microserviços:
-
-
-UsersAPI
-CatalogAPI
-PaymentsAPI
-NotificationsAPI
-
-
-Cada serviço possui responsabilidades específicas e se comunica através de **eventos de integração**.
 
 ---
 
 # Autor
 
-Leandro Oliveira  
+Leandro Oliveira e Luciano Miranda
 
 FIAP – Pós-Graduação em Arquitetura .NET
