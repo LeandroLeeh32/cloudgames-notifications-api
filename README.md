@@ -261,6 +261,16 @@ O ambiente é iniciado em etapas.
 
 ---
 
+## Ambiente necessário para rodar local a infra
+
+1. Node.js / versão LTS
+2. Instalar o Azurite
+3. Azure Functions Core Tools
+4. Docker Desktop (para RabbitMQ)
+5. .NET 8 SDK
+
+---
+
 ## 1. Subir RabbitMQ
 
 Execute o comando abaixo na raiz do projeto Notification:
@@ -297,7 +307,6 @@ Credenciais padrão:
 usuario: guest
 senha: guest
 
-
 ---
 
 ## 2. Executar Azurite
@@ -318,7 +327,7 @@ Azurite é utilizado como emulador local do Azure Storage necessário para execu
 
 ## 3. Executar Azure Functions
 
-Após subir o RabbitMQ, abra um terminal dentro da pasta:
+Abra um terminal dentro da pasta:
 
 CloudGames.Notifications.Functions 
 
@@ -350,6 +359,7 @@ Exemplo de caminho utilizado no ambiente local:
 
 \Notification\teste-local
 
+Os executáveis presentes na pasta teste-local permitem publicar eventos de teste sem necessidade de Visual Studio ou SDK .NET instalado.
 Os executáveis foram gerados como aplicações standalone utilizando .NET Publish Single File, permitindo execução sem necessidade de instalação do SDK .NET ou Visual Studio.
 
 Exemplos:
