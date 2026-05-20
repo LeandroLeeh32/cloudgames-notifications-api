@@ -21,10 +21,6 @@ namespace CloudGames.Notifications.Infrastructure.Services
         {
             _logger.LogInformation("Sending email to {Email} - {Subject}", email, subject);
 
-            Console.WriteLine($"To: {email}");
-            Console.WriteLine($"subject: {subject}");
-            Console.WriteLine($"message: {message}");
-
             await Task.CompletedTask;
         }
     }

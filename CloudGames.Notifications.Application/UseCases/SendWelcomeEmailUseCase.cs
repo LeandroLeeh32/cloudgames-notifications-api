@@ -17,16 +17,13 @@ namespace CloudGames.Notifications.Application.UseCases
 
         public async Task ExecuteAsync(string name, string email)
         {
-            //_logger.LogInformation("Sending welcome email to {Email}", email);
 
             var subject = "Welcome to CloudGames!";
             var message = $"Hello {name}, welcome to CloudGames!";
 
-            //throw new Exception("Erro proposital");
 
             await _emailService.SendEmailAsync(email, subject, message);
 
-            //_logger.LogInformation("Email successfully sent to {Email}", email);
         }
     }
 }
