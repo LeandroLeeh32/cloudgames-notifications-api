@@ -31,3 +31,17 @@ spec:
                 secretKeyRef:
                   name: notifications-secret
                   key: RabbitMQConnection
+            - name: WEBSITES_ENABLE_APP_SERVICE_STORAGE
+              value: "false"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 10
