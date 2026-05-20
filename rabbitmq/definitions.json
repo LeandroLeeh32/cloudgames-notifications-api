@@ -43,7 +43,7 @@
 
   "exchanges": [
     {
-      "name": "FIAP.Messages:PaymentProcessedEvent",
+      "name": "PaymentProcessedEvent",
       "vhost": "/",
       "type": "fanout",
       "durable": true,
@@ -52,7 +52,7 @@
       "arguments": {}
     },
     {
-      "name": "CloudGames.Notifications.Application.IntegrationEvents.Users:UserCreatedIntegrationEvent",
+      "name": "UserCreatedIntegrationEvent",
       "vhost": "/",
       "type": "fanout",
       "durable": true,
@@ -64,7 +64,7 @@
 
   "bindings": [
     {
-      "source": "FIAP.Messages:PaymentProcessedEvent",
+      "source": "PaymentProcessedEvent",
       "vhost": "/",
       "destination": "PaymentProcessed",
       "destination_type": "queue",
@@ -72,7 +72,7 @@
       "arguments": {}
     },
     {
-      "source": "CloudGames.Notifications.Application.IntegrationEvents.Users:UserCreatedIntegrationEvent",
+      "source": "UserCreatedIntegrationEvent",
       "vhost": "/",
       "destination": "UserCreated",
       "destination_type": "queue",
