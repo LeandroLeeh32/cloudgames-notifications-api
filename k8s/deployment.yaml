@@ -15,7 +15,7 @@ spec:
       containers:
         - name: notifications-functions
           image: fiapmicroservicos-notifications-functions:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:
@@ -33,6 +33,16 @@ spec:
                   key: RabbitMQConnection
             - name: WEBSITES_ENABLE_APP_SERVICE_STORAGE
               value: "false"
+            - name: Redis__ConnectionString
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: Redis__ConnectionString
+            - name: Redis__LogStream
+              valueFrom:
+                configMapKeyRef:
+                  name: notifications-config
+                  key: Redis__LogStream
           livenessProbe:
             httpGet:
               path: /

@@ -4,3 +4,5 @@ metadata:
   name: notifications-config
 data:
   AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OGDouqEgUl1s4Rt0mEKI4OdVNt6Eok4;BlobEndpoint=http://azurite-service:10000/devstoreaccount1;QueueEndpoint=http://azurite-service:10001/devstoreaccount1;TableEndpoint=http://azurite-service:10002/devstoreaccount1;"
+  Redis__ConnectionString: "redis-service:6379"
+  Redis__LogStream: "cloudgames:logs"
