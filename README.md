@@ -309,31 +309,12 @@ senha: guest
 
 ---
 
-## 2. Executar Azurite
 
-libere a porta 10000
+## 2. Executar Azure Functions (PROMPT LOCAL)
 
-Executar em outro terminal:
+Abra um terminal dentro da pasta: CloudGames.Notifications.Functions 
 
-Get-NetTCPConnection -LocalPort 10000 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
-
-Executar em outro terminal: 
-
-azurite
-
-Azurite é utilizado como emulador local do Azure Storage necessário para execução do runtime das Azure Functions.
-
----
-
-## 3. Executar Azure Functions
-
-Abra um terminal dentro da pasta:
-
-CloudGames.Notifications.Functions 
-
-Execute:
-
-func start
+Execute: func start
 
 Esse comando irá:
 
@@ -349,7 +330,7 @@ UserCreatedFunction
 
 ---
 
-## 4. Publicar Eventos de Teste
+## 3. Publicar Eventos de Teste
 
 Os eventos podem ser publicados através dos executáveis disponibilizados na pasta:
 
@@ -365,7 +346,7 @@ Os executáveis foram gerados como aplicações standalone utilizando .NET Publi
 Exemplos:
 
 - CloudGames.TestPublisher-payment.exe
-- CloudGames.TestPublisher-user.exe
+- CloudGames.TestPublisher-users.exe
 
 Basta executar o arquivo `.exe` correspondente ao evento desejado.
 
