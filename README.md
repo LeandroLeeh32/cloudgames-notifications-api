@@ -3,44 +3,43 @@
 O **CloudGames Notifications Serverless Functions** é responsável pelo processamento de notificações da plataforma **CloudGames** utilizando arquitetura **Serverless** baseada em **Azure Functions**.
 A solução foi refatorada a partir de uma arquitetura tradicional baseada em consumers contínuos para um modelo orientado a eventos utilizando **Functions acionadas sob demanda** através de mensagens recebidas no **RabbitMQ**.
 
-# Arquitetura Serverless
+# Infraestrutura como Código (IaC)
 
-A arquitetura utiliza:
+Toda a infraestrutura necessária para execução local e orquestrada da solução serverless encontra-se versionada neste repositório.
 
+A infraestrutura é provisionada através de:
+
+- docker-compose.yml
+- definitions.json
+- manifests Kubernetes (k8s)
+- configurações das Azure Functions
+
+Esses arquivos são responsáveis por provisionar:
+
+- RabbitMQ
+- exchanges
+- queues
+- bindings
 - Azure Functions
-- RabbitMQ Trigger
-- processamento sob demanda
-- execução orientada a eventos
+- rede entre serviços
+- containers necessários
 
-As Functions são executadas apenas quando uma nova mensagem é recebida no broker.
-
-Fluxo atual:
-
-UsersAPI / PaymentAPI
-│
-│ publica evento
-▼
-RabbitMQ
-│
-│ mensagem recebida
-▼
-Azure Functions
-│
-▼
-UseCases
-│
-▼
-EmailService
-
-
-Essa abordagem reduz consumo de recursos e melhora a escalabilidade da solução.
-
----
+A solução utiliza abordagem Infrastructure as Code (IaC) equivalente utilizando Docker Compose + Kubernetes manifests.
+Todo o código das Azure Functions e toda a infraestrutura necessária para execução da solução encontram-se centralizados neste repositório, atendendo ao requisito de separação da arquitetura serverless.
 
 # Arquitetura do Projeto
 
-O projeto segue princípios de **Clean Architecture**, separando responsabilidades em diferentes camadas.
+CloudGames.Notifications
+├── CloudGames.Notifications.Functions
+├── CloudGames.Notifications.Application
+├── CloudGames.Notifications.Domain
+├── CloudGames.Notifications.Infrastructure
+├── docker-compose.yml
+├── definitions.json
+├── k8s
+└── README.md
 
+O projeto segue princípios de **Clean Architecture**, separando responsabilidades em diferentes camadas.
 
 CloudGames.Notifications
 │
@@ -112,26 +111,7 @@ public async Task Run([RabbitMQTrigger("UserCreated",ConnectionStringSetting = "
 ---
 
 # Eventos de Integração
-
-Os eventos de integração estão definidos dentro da camada:
-
-CloudGames.Notifications.Application
-
-Estrutura:
-
-CloudGames.Notifications.Application
-│
-└── IntegrationEvents
-│
-├── Users
-│ └── UserCreatedIntegrationEvent.cs
-│
-└── Purchases
-└── PaymentProcessedEvent.cs
-
----
-
-# UserCreatedIntegrationEvent
+UserCreatedIntegrationEvent
 
 Evento publicado quando um usuário é criado.
 
@@ -141,7 +121,7 @@ Exemplo de uso:
 
 ---
 
-# PaymentProcessedEvent
+PaymentProcessedEvent
 
 Evento publicado quando uma compra é processada.
 
@@ -162,34 +142,6 @@ o RabbitMQ Trigger não realiza criação automática de:
 - bindings
 
 Por esse motivo, o ambiente foi configurado para provisionar previamente os recursos necessários através de definitions.json
-
----
-
-# Fluxo Esperado da Mensageria
-
-Publisher
-↓
-Exchange
-↓
-Binding
-↓
-Queue
-↓
-Azure Function Trigger
-
----
-
-# Convenções de Exchanges do MassTransit
-
-O MassTransit publica eventos utilizando convenções internas baseadas nos tipos dos contratos de integração.
-
-Exemplo de exchange criada automaticamente:
-
-FIAP.Messages:PaymentProcessedEvent
-
-Durante a integração foi necessário alinhar os bindings do RabbitMQ para consumir corretamente os eventos publicados pelo MassTransit.
-
----
 
 # Provisionamento das Filas e Exchanges
 
@@ -253,7 +205,7 @@ catch(Exception ex)
 
 ---
 
-# Executando o Ambiente Local (Simulador do ambiente de infra - serveless)
+# Execução Local da Arquitetura Serverless
 
 A arquitetura serverless pode ser executada localmente utilizando RabbitMQ + Azure Functions.
 
@@ -271,46 +223,27 @@ O ambiente é iniciado em etapas.
 
 ---
 
-## 1. Subir RabbitMQ
+## 1. Subir RabbitMQ /  azurite / Azure Functions
 
-Execute o comando abaixo na raiz do projeto Notification:
+Esse docker-compose.yml sobe toda a infraestrutura local da sua solução serverless baseada em Docker Compose, RabbitMQ, Azurite e Azure Functions.
 
-docker compose down
-
-Caso seja necessário limpar completamente o ambiente:
-
-docker volume prune -f
-
-SUBINDO O AMBIENTE RABBIT
+SUBINDO O AMBIENTE RABBIT / azurite / Azure Functions
 
 docker compose up -d
 
-Esse comando irá:
+Em resumo, esse docker-compose sobe todo o ambiente da sua arquitetura localmente:
 
-- iniciar o container RabbitMQ
-- disponibilizar o broker localmente
-- abrir as portas necessárias para comunicação
-- disponibilizar o painel administrativo do RabbitMQ
-- provisionar exchanges, queues e bindings automaticamente
+RabbitMQ → recebe e distribui eventos/mensagens.
+Azurite → simula serviços do Azure Storage localmente.
+Azure Functions → executa sua Function que consome os eventos.
 
-Portas utilizadas:
+Painel administrativo RabbitMQ: http://localhost:15672
 
-- 5672 → comunicação AMQP
-- 15672 → painel administrativo
-
-Painel administrativo:
-
-http://localhost:15672
-
-Credenciais padrão:
-
-usuario: guest
-senha: guest
+Credenciais padrão: usuario: guest / senha: guest
 
 ---
 
-
-## 2. Executar Azure Functions (PROMPT LOCAL)
+## 2. Executar func
 
 Abra um terminal dentro da pasta: CloudGames.Notifications.Functions 
 
@@ -368,47 +301,6 @@ Caso seja necessário limpar completamente o ambiente:
 
 docker volume prune -f
 
----
-
-# Execução em Ambiente Orquestrado
-
-A solução também pode ser executada em ambiente orquestrado utilizando:
-
-- Kubernetes
-- Docker Compose
-- Docker Desktop Kubernetes
-
-Nesse cenário:
-
-- RabbitMQ sobe como serviço/container da infraestrutura
-- Azure Functions executa containerizada
-- os serviços se comunicam através da rede interna do orquestrador
-
-Exemplo de hostname utilizado no ambiente orquestrado:
-
-rabbitmq
-
----
-
-# Fluxo Completo da Arquitetura
-
-
-UsersAPI / CatalogAPI
-        ↓
-RabbitMQ
-        ↓
-Azure Functions Runtime
-        ↓
-RabbitMQ Trigger
-        ↓
-UseCases
-        ↓
-EmailService
-
-
-As Functions são executadas somente quando novas mensagens chegam ao broker, caracterizando uma arquitetura orientada a eventos utilizando modelo serverless.
-
----
 
 # Tecnologias Utilizadas
 
@@ -422,7 +314,6 @@ As Functions são executadas somente quando novas mensagens chegam ao broker, ca
 - Clean Architecture
 - Event Driven Architecture
 - Azure Functions Isolated Worker
-
 
 ---
 
