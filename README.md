@@ -223,10 +223,7 @@ O ambiente é iniciado em etapas.
 
 # Execução da Arquitetura Serverless
 
-A solução pode ser executada de duas formas:
-
-- Modo 1 — Ambiente totalmente containerizado
-- Modo 2 — Azure Functions executando localmente para visualização via console e debug
+A solução pode ser executada: Ambiente totalmente containerizado
 
 ---
 
@@ -268,77 +265,10 @@ Credenciais padrão:
 
 ---
 
-# Modo 2 — Execução Local da Azure Function
-
-Esse modo é recomendado para debug e visualização dos logs diretamente no console.
-
-Nesse cenário:
-
-- RabbitMQ e Azurite continuam sendo executados via Docker Compose
-- Azure Functions será executada localmente através do Azure Functions Core Tools
-
-## Subindo RabbitMQ e Azurite
-
-Execute:
-
-docker compose up -d
-
-## Executando a Azure Function localmente
-
-Abra um terminal dentro da pasta:
-
-CloudGames.Notifications.Functions
-
-Caso a porta padrão 7071 já esteja em uso, execute a Function em outra porta:
-
-func start --port 7072
-
-Ou utilizando a uma outra porta porta:
-
-func start
-
-Esse comando irá:
-
-- iniciar o runtime local das Azure Functions
-- carregar os RabbitMQ Triggers
-- ativar as Functions serverless
-- começar a escutar mensagens recebidas no RabbitMQ
-
 ## Functions carregadas
 
 - PaymentProcessedFunction
 - UserCreatedFunction
-
----
-
-# Publicação de Eventos de Teste
-
-Os eventos podem ser publicados através dos executáveis disponibilizados na pasta:
-
-teste-local
-
-Exemplo:
-
-\Notification\teste-local
-
-Os executáveis presentes nessa pasta permitem publicar eventos de teste sem necessidade de Visual Studio ou SDK .NET instalado.
-
-Os executáveis foram gerados utilizando .NET Publish Single File.
-
-## Executáveis disponíveis
-
-- CloudGames.TestPublisher-payment.exe
-- CloudGames.TestPublisher-users.exe
-
-Basta executar o `.exe` correspondente ao evento desejado.
-
-Ao executar:
-
-- o evento será publicado no RabbitMQ
-- a exchange será acionada
-- o binding encaminhará a mensagem para a fila correspondente
-- a Azure Function Trigger será executada automaticamente
-- os logs poderão ser visualizados diretamente no console da Function
 
 ---
 
